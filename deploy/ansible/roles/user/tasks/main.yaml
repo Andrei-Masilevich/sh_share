@@ -1,0 +1,76 @@
+- name: Set home folder
+  set_fact:
+    deploy_home_dir: "/etc/sh_share"
+
+- name: Create service user
+  become: true
+  user:
+    name: sh_share
+    home: "{{ deploy_home_dir }}"
+    shell: /bin/bash
+    password_lock: true
+    system: true
+    state: present
+
+- name: Set current user
+  set_fact:
+    service_user: "sh_share"
+
+- name: Set deploy dir
+  set_fact:
+    deploy_remote_dir: "{{ deploy_home_dir }}"
+
+- name: Set secret dir
+  set_fact:
+    deploy_remote_secret_dir: "{{ deploy_home_dir }}/.secret"
+
+- name: Get working folder
+  set_fact:
+    install_home_dir: "{{ install_home.stat.path if install_home.stat.isdir is defined }}"
+
+- name: Apply shared folder argument
+  become: true
+  file:
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    path: "{{ deploy_home_dir }}/share"
+    state: directory
+  when: sh_share_deploy_remote_share_dir is not defined
+
+- name: Apply shared folder argument
+  set_fact:
+    sh_share_deploy_remote_share_dir: "{{ deploy_home_dir }}/share"
+  when: sh_share_deploy_remote_share_dir is not defined
+
+- name: Check access for remote shared folder '{{sh_share_deploy_remote_share_dir}}'
+  become: true
+  become_user: "{{ service_user }}"
+  stat:
+    path: "{{ sh_share_deploy_remote_share_dir }}"
+  register: share_dir
+
+- name: Variables
+  debug:
+    msg:
+    - "share_dir_stat = {{ share_dir }}"
+
+- name: Does shared directory readable?
+  fail:
+    msg: "Deploy folder is not readable!"
+  when: not share_dir.stat.isdir or not share_dir.stat.executable or not share_dir.stat.readable
+
+- name: Install Docker group
+  become: true
+  user:
+    name: "{{ service_user }}"
+    groups: docker
+    append: yes
+    
+- name: Variables
+  debug:
+    msg:
+    - "service_user = {{ service_user }}"
+    - "deploy_home_dir = {{ deploy_home_dir }}"
+    - "deploy_remote_dir = {{ deploy_remote_dir }}"
+    - "deploy_remote_secret_dir = {{ deploy_remote_secret_dir }}"
+    - "sh_share_deploy_remote_share_dir = {{ sh_share_deploy_remote_share_dir }}"

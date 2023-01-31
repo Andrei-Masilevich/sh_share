@@ -1,0 +1,36 @@
+---
+
+services:
+
+  service:
+    extends:
+      file: compose-with-nginx.yaml
+      service: service
+
+  nginx:
+    extends:
+      file: compose-with-nginx.yaml
+      service: nginx
+
+  telegram:
+    image: telegram.sh_share
+    container_name: telegram.sh_share
+    restart: always
+    environment:
+      - SH_SHARE_SERVICE_DOMAIN=${SH_SHARE_SERVICE_DOMAIN}
+      - SH_SHARE_SERVICE_SHADOW=${SH_SHARE_SERVICE_SHADOW}      
+      - SH_SHARE_SERVICE_TELEGRAM_ACCEPT_COMMAND=${SH_SHARE_SERVICE_TELEGRAM_ACCEPT_COMMAND}
+      - SH_SHARE_SERVICE_TELEGRAM_BOT_TOKEN=${SH_SHARE_SERVICE_TELEGRAM_BOT_TOKEN}
+      - SH_SHARE_SERVICE_TELEGRAM_CHANNEL_ID=${SH_SHARE_SERVICE_TELEGRAM_CHANNEL_ID}
+    command:
+      - bash
+      - ./telegram.run.sh
+      - ./notify.tpl.yaml
+    networks:
+      - sh_share
+    depends_on:
+      - service
+
+networks:
+  sh_share:
+    name: sh_share

@@ -1,0 +1,9 @@
+---
+
+- name: Create schedule for sh_share service under /etc/cron.d
+  become: true
+  ansible.builtin.cron:
+    user: "{{ service_user }}"
+    name: Update shadow
+    minute: "*/30"
+    job: "{{bash.stat.path}} {{deploy_remote_dir}}/start.sh 1>/dev/null 2>&1"

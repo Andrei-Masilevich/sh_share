@@ -1,0 +1,6 @@
+[submodule "src/faker"]
+	path = src/faker
+	url = ../wtk_faker.git
+[submodule "deploy/ansible/roles/ufw-port-forward"]
+	path = deploy/ansible/roles/ufw-port-forward
+	url = ../ansible-role-ufw-port-forward.git

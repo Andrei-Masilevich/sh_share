@@ -1,0 +1,101 @@
+- name: Search the properly installed BASH
+  stat:
+    path: /bin/bash
+  register: bash
+
+- name: BASH was not found
+  fail:
+    msg: BASH is required!
+  when: bash.stat.isreg is not defined or not bash.stat.executable
+
+- name: BASH was not found
+  fail:
+    msg: BASH is required!
+  when: bash.stat.isreg is not defined or not bash.stat.executable
+
+- name: Search for Docker installation (Debian based)
+  set_fact:
+    install_docker: >
+       {{ 'docker-ce' not in ansible_facts.packages 
+        or 'docker-ce-cli' not in ansible_facts.packages 
+        or 'docker-compose-plugin' not in ansible_facts.packages }}
+  when: ansible_distribution in ('Ubuntu', 'Debian')
+
+- name: Search for Docker installation (not Debian based)
+  command:
+    argv:
+      - "which"
+      - "docker"
+  register: install_docker_cmd
+  ignore_errors: True
+  when: ansible_distribution not in ('Ubuntu', 'Debian')
+
+- name: Search for Docker installation (not Debian based)
+  set_fact:
+    install_docker: "{{ install_docker_cmd.rc != 0 }}"
+  when: ansible_distribution not in ('Ubuntu', 'Debian')
+
+- name: Variables
+  debug:
+    msg:
+    - "install_docker = {{ install_docker }}"
+    - "ansible_distribution = {{ ansible_distribution }}"
+
+- name: Docker is required
+  fail:
+    msg: Docker is required and can't be installed automatically!
+  when: install_docker and ansible_distribution not in ('Ubuntu', 'Debian')
+
+- name: Install packages
+  become: true
+  package:
+    name:
+      - software-properties-common
+      - apt-transport-https
+      - curl
+  when: install_docker
+
+- name: Install Docker (Download setup script)
+  command:
+    cmd: "curl -sSL get.docker.com -o {{install_download_dir}}/get.docker.com.sh"
+  when: install_docker
+
+- name: Install Docker (Launch setup script)
+  become: true
+  async: 1000
+  poll: 0  
+  command:
+    argv:
+      - "{{bash.stat.path}}"
+      - "{{install_download_dir}}/get.docker.com.sh"
+  register: install_docker_async_result
+  when: install_docker
+
+- name: Check on an async install Docker task
+  become: true
+  async_status:
+    jid: "{{ install_docker_async_result.ansible_job_id }}"
+  register: install_docker_result
+  until: install_docker_result.finished
+  changed_when: false
+  retries: 100
+  delay: 2
+  when: install_docker_async_result.ansible_job_id is defined
+
+- name: Installation Docker result
+  debug:
+    msg: "{{install_docker_result.stdout_lines}}"
+  when: install_docker_async_result.ansible_job_id is defined
+
+- name: Cleanup
+  file:
+    path: "{{install_download_dir}}/get.docker.com.sh"
+    state: absent
+  when: install_docker
+
+- name: Install Docker group
+  become: true
+  user:
+    name: "{{ deploy_regular_user }}"
+    groups: docker
+    append: yes

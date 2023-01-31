@@ -1,0 +1,38 @@
+---
+
+services:
+
+  service:
+    extends:
+      file: compose-service.yaml
+      service: service
+
+  nginx:
+    image: nginx
+    container_name: nginx.sh_share
+    restart: always
+    command:
+      - bash
+      - /etc/nginx/run.sh
+      - /etc/nginx/conf.d/nginx.conf.sh_share
+    ports:
+      - "127.0.0.1:8080:80"
+      - "127.0.0.1:8443:443"
+    environment:
+      - SH_SHARE_SERVICE_DOMAIN=${SH_SHARE_SERVICE_DOMAIN}
+      - SH_SHARE_SERVICE_SHADOW=${SH_SHARE_SERVICE_SHADOW}
+    volumes:
+      - ./nginx.run.sh:/etc/nginx/run.sh
+      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf.sh_share
+      - type: bind
+        source: ${SH_SHARE_SERVICE_CERTIFICATE}
+        target: /etc/nginx/.ssl/sh_share.cert
+        read_only: true
+    networks:
+      - sh_share
+    depends_on:
+      - service
+
+networks:
+  sh_share:
+    name: sh_share

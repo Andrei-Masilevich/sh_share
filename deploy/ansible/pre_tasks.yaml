@@ -1,0 +1,137 @@
+- name: Check plarform
+  fail:
+    msg: "Unsupported platfrom '{{ ansible_distribution }}'!"
+  when: ansible_distribution not in ("Pop!_OS", "Ubuntu", "Debian")
+
+- name: Get current user
+  set_fact:
+    deploy_regular_user: "{{ ansible_user_id or ansible_env.SUDO_USER }}"
+  when: deploy_regular_user is not defined
+
+- name: Check for working folder
+  getent:
+    database: passwd
+    key: "{{deploy_regular_user}}"
+- debug:
+    var: ansible_facts.getent_passwd
+
+- name: Check for working folder
+  stat:
+    path: "{{ getent_passwd[ deploy_regular_user ][4] }}"
+  register: install_download_dir_stat
+
+- name: Check for working folder
+  set_fact:
+    install_download_dir: "{{ install_download_dir_stat.stat.path }}"
+  when: install_download_dir_stat.stat.isdir is defined
+
+- name: Does working folder exist?
+  fail:
+    msg: "Working folder is required!"
+  when: install_download_dir_stat.stat.isdir is not defined
+
+- name: Check local share directory argument
+  fail:
+    msg: Local directory to share is required!
+  when: sh_share_deploy_local_share_dir is not defined
+
+- name: Check for local share directory
+  delegate_to: localhost
+  stat:
+    path: "{{ sh_share_deploy_local_share_dir }}"
+  register: sh_share_deploy_local_share_dir_stat
+
+- name: Does local share directory exist? 
+  fail:
+    msg: Local directory to share is required!
+  when: sh_share_deploy_local_share_dir_stat.stat.isdir is not defined
+
+- name: Apply share type argument
+  set_fact:
+    sh_share_deploy_share_type: "zip"
+  when: sh_share_deploy_share_type is not defined
+
+- name: Check external network interface argument
+  fail:
+    msg: External network interface is required!
+  when: sh_share_deploy_external_inet_interface is not defined
+
+- name: Check external IPv4 address argument
+  fail:
+    msg: External IPv4 address is required!
+  when: sh_share_deploy_external_ipv4 is not defined
+
+- name: Check certificate path argument
+  fail:
+    msg: Certificate file is required!
+  when: sh_share_deploy_certificate_file is not defined
+
+- name: Check domain argument
+  fail:
+    msg: Domain is required!
+  when: sh_share_deploy_domain is not defined
+
+- name: Apply Telegram
+  set_fact:
+    sh_share_deploy_telegram_off: false
+  when: sh_share_deploy_telegram_off is not defined
+
+- name: Apply Telegram accept command argument
+  set_fact:
+    sh_share_deploy_telegram_accept_command: "get_url"
+  when: not sh_share_deploy_telegram_off and sh_share_deploy_telegram_accept_command is not defined
+
+- name: Apply Telegram accept command argument
+  set_fact:
+    sh_share_deploy_telegram_accept_command: false
+  when: sh_share_deploy_telegram_off
+
+- name: Check Telegram bot token argument
+  fail:
+    msg: Telegram bot token is required!
+  when: not sh_share_deploy_telegram_off and sh_share_deploy_telegram_bot_token is not defined
+
+- name: Apply Telegram bot token argument
+  set_fact:
+    sh_share_deploy_telegram_bot_token: false
+  when: sh_share_deploy_telegram_off
+
+- name: Check Telegram channel ID argument
+  fail:
+    msg: Telegram channel ID is required!
+  when: not sh_share_deploy_telegram_off and sh_share_deploy_telegram_channel_id is not defined
+
+- name: Apply Telegram channel ID argument
+  set_fact:
+    sh_share_deploy_telegram_channel_id: false
+  when: sh_share_deploy_telegram_off
+
+- name: Variables
+  debug:
+    msg:
+    - "deploy_regular_user = {{ deploy_regular_user }}"    
+    - "install_download_dir = {{ install_download_dir }}"
+    - "sh_share_deploy_local_share_dir = {{ sh_share_deploy_local_share_dir }}"
+    - "sh_share_deploy_share_type = {{ sh_share_deploy_share_type }}"
+    - "sh_share_deploy_external_inet_interface = {{ sh_share_deploy_external_inet_interface }}"
+    - "sh_share_deploy_external_ipv4 = {{ sh_share_deploy_external_ipv4 }}"
+    - "sh_share_deploy_certificate_file = {{ sh_share_deploy_certificate_file }}"   
+    - "sh_share_deploy_domain = {{ sh_share_deploy_domain }}"
+    - "sh_share_deploy_telegram_off = {{ sh_share_deploy_telegram_off }}"
+    - "sh_share_deploy_telegram_accept_command = {{ sh_share_deploy_telegram_accept_command }}"
+    - "sh_share_deploy_telegram_bot_token = {{ sh_share_deploy_telegram_bot_token }}"
+    - "sh_share_deploy_telegram_channel_id = {{ sh_share_deploy_telegram_channel_id }}"
+
+- name: Update repository
+  become: true
+  apt:
+    update_cache: yes
+    cache_valid_time: 432000 # 5 days
+  changed_when: false
+  when: ansible_distribution in ("Pop!_OS", "Ubuntu", "Debian")
+
+- name: Gather the package facts
+  become: true
+  package_facts:
+    manager: auto
+

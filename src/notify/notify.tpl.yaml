@@ -1,0 +1,7 @@
+notify: 
+  - ${NOTIFY_COMMAND}:
+      message: "${NOTIFY_MESSAGE}"
+telegram:
+  bot_token: ${TELEGRAM_BOT_TOKEN}
+  channel_id: ${TELEGRAM_CHANNEL_ID}
+

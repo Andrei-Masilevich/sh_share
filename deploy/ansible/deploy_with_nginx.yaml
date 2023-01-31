@@ -1,0 +1,33 @@
+---
+
+- hosts: all
+  pre_tasks:
+  
+    - name: Initialize
+      include_tasks: pre_tasks.yaml
+
+    - name: Set MODE
+      set_fact:
+        deploy_mode: "nginx"
+
+  vars:
+    - ufw_port_forward_settings:
+        - src_interface: "{{sh_share_deploy_external_inet_interface}}"
+          src_ip: "{{sh_share_deploy_external_ipv4}}"
+          src_port: 443
+          dest_ip: 127.0.0.1
+          dest_port: 8443
+        - src_interface: "{{sh_share_deploy_external_inet_interface}}"
+          src_ip: "{{sh_share_deploy_external_ipv4}}"
+          src_port: 80
+          dest_ip: 127.0.0.1
+          dest_port: 8080
+                
+  roles:
+    - requirements
+    - user
+    - copy
+    - nginx
+    - cron
+    - firewall
+    - ufw-port-forward

@@ -1,0 +1,80 @@
+---
+
+- name: Get infos on nginx.sh_share container
+  docker_container_info:
+    name: nginx.sh_share
+  register: sh_share_nginx_container_info
+  when: not deploy_files_updated
+
+- name: Does nginx.sh_share container exist?
+  set_fact:
+    sh_share_nginx_present: "{{ true if sh_share_nginx_container_info.exists else false }}"
+  when: not deploy_files_updated
+
+- name: Get infos on service.sh_share container
+  docker_container_info:
+    name: service.sh_share
+  register: sh_share_service_container_info
+  when: not deploy_files_updated
+
+- name: Does service.sh_share container exist?
+  set_fact:
+    sh_share_service_present: "{{ true if sh_share_service_container_info.exists else false }}"
+  when: not deploy_files_updated
+
+- name: Get infos on telegram.sh_share container
+  docker_container_info:
+    name: telegram.sh_share
+  register: sh_share_telegram_container_info
+  when: not sh_share_deploy_telegram_off and not deploy_files_updated
+
+- name: Does telegram.sh_share container exist?
+  set_fact:
+    sh_share_telegram_present: "{{ true if sh_share_telegram_container_info.exists else false }}"
+  when: not sh_share_deploy_telegram_off and not deploy_files_updated
+
+- name: Does telegram.sh_share container exist?
+  set_fact:
+    sh_share_telegram_present: true
+  when: sh_share_deploy_telegram_off
+
+- name: Variables
+  debug:
+    msg:
+    - "sh_share_nginx_present = {{ sh_share_nginx_present }}"
+    - "sh_share_service_present = {{ sh_share_service_present }}"
+    - "sh_share_telegram_present = {{ sh_share_telegram_present }}"
+  when: not deploy_files_updated
+
+- name: Setup service with Nginx
+  become: true
+  become_user: "{{ service_user }}"
+  async: 1000
+  poll: 0 
+  command:
+    argv:
+      - "{{bash.stat.path}}" 
+      - "{{deploy_remote_dir}}/deploy.sh"
+  register: deploy_with_nginx_async_result
+  when: deploy_files_updated or not sh_share_nginx_present or not sh_share_service_present or not sh_share_telegram_present
+
+- name: Check on an async setup task
+  become: true
+  become_user: "{{ service_user }}"
+  async_status:
+    jid: "{{ deploy_with_nginx_async_result.ansible_job_id }}"
+  register: deploy_with_nginx_result
+  until: deploy_with_nginx_result.finished
+  changed_when: false
+  retries: 100
+  delay: 2
+  when: deploy_with_nginx_async_result.ansible_job_id is defined
+
+- name: Installation result
+  debug:
+    msg: "{{deploy_with_nginx_result.stdout_lines}}"
+  when: deploy_with_nginx_async_result.ansible_job_id is defined
+
+  
+
+  

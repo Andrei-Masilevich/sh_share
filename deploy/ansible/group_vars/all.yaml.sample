@@ -1,0 +1,70 @@
+# Dummy variable to avoid error because ansible does not recognize the
+# file as a good configuration file when no variable in it.
+#
+dummy:
+
+
+# Both with sh_share_deploy_external_ipv4
+# required to configure firewall to connect
+# service to system ports (80/443) for Internet 
+# interface (Mandatory)
+#
+# sh_share_deploy_external_inet_interface:
+
+
+# Both with sh_share_deploy_external_inet_interface
+# required to configure firewall to connect
+# service to system ports (80/443) for Internet 
+# interface (Mandatory)
+#
+# sh_share_deploy_external_ipv4:
+
+
+# Remote folder with shared files. 
+# It could be any mapped to appropriate storage ex. VFS
+#
+# sh_share_deploy_remote_share_dir: "{{ deploy_home_dir }}/share"
+
+
+# Source folder to upload initial files set (Optional)
+#
+# sh_share_deploy_local_share_dir:
+
+
+# Used by sh_share_deploy_local_share_dir to detect files 
+# to copy (Optional)
+#
+# sh_share_deploy_share_type: zip
+
+
+# HTTPS certificate for public service (Mandatory)
+#
+# sh_share_deploy_certificate_file:
+
+
+# Public service domain (Mandatory)
+#
+# sh_share_deploy_domain:
+
+
+# Remove Telegram notifier from deploy set for 
+# test purpose (Optional)
+#
+# sh_share_deploy_telegram_off: false
+
+
+# Trigger command to get service info
+# from Telegram channel
+#
+# sh_share_deploy_telegram_accept_command: get_url
+
+
+# Telegram stuff
+#
+# sh_share_deploy_telegram_bot_token:
+
+
+# Telegram stuff
+#
+# sh_share_deploy_telegram_channel_id:
+

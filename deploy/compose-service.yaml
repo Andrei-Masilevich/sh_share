@@ -1,0 +1,24 @@
+---
+
+services:
+
+  service:
+    image: service.sh_share
+    container_name: service.sh_share
+    restart: always
+    hostname: sh_share
+    command: >
+      python3 app.py --http_port=8080 --shadow=${SH_SHARE_SERVICE_SHADOW} --share=/home/appuser/app/share
+    ports:
+      - "127.0.0.1:18080:8080"
+    networks:
+      - sh_share
+    volumes:
+      - type: bind
+        source: ${SH_SHARE_SERVICE_DIR}
+        target: /home/appuser/app/share
+        read_only: true
+
+networks:
+  sh_share:
+    name: sh_share

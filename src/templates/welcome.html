@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+   <link rel="stylesheet" href="{{ static_url(var_css + ".css") }}">
+   <head>
+      <meta charset="UTF-8">
+      <title></title>
+   </head>
+   <body>
+      <div class="body">
+      <div class="title">
+      <pre>
+                                                                           
+        ██████  ██░ ██           ██████  ██░ ██  ▄▄▄       ██▀███  ▓█████ 
+      ▒██    ▒ ▓██░ ██▒        ▒██    ▒ ▓██░ ██▒▒████▄    ▓██ ▒ ██▒▓█   ▀ 
+      ░ ▓██▄   ▒██▀▀██░        ░ ▓██▄   ▒██▀▀██░▒██  ▀█▄  ▓██ ░▄█ ▒▒███   
+        ▒   ██▒░▓█ ░██           ▒   ██▒░▓█ ░██ ░██▄▄▄▄██ ▒██▀▀█▄  ▒▓█  ▄ 
+      ▒██████▒▒░▓█▒░██▓ ██▓    ▒██████▒▒░▓█▒░██▓ ▓█   ▓██▒░██▓ ▒██▒░▒████▒
+      ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▓▒    ▒ ▒▓▒ ▒ ░ ▒ ░░▒░▒ ▒▒   ▓▒█░░ ▒▓ ░▒▓░░░ ▒░ ░
+      ░ ░▒  ░ ░ ▒ ░▒░ ░ ░▒     ░ ░▒  ░ ░ ▒ ░▒░ ░  ▒   ▒▒ ░  ░▒ ░ ▒░ ░ ░  ░
+      ░  ░  ░   ░  ░░ ░ ░      ░  ░  ░   ░  ░░ ░  ░   ▒     ░░   ░    ░   
+            ░   ░  ░  ░  ░           ░   ░  ░  ░      ░  ░   ░        ░  ░
+                         ░                                                
+                                                                              </pre>
+      <hr>
+      <!-- Thx. https://patorjk.com/software/taag/#p=display&f=Bloody&t=sh.share -->
+      </div>
+      {% for name, info in var_objects.items() %}
+         <div class="text">
+            <table>
+            <tr><td>
+            <a class="link" href="{{ "/" + name + "/latest" }}">{{name}}</a>
+            </td>
+            <td>
+            {{info[2]}}
+            </td>
+            </tr>
+            </table>
+         </div>
+      {% end %}
+      </div>
+   </body>
+</html>

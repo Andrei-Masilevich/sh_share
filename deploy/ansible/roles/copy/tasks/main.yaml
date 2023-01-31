@@ -1,0 +1,154 @@
+- name: Make secret folder
+  become: true
+  file:
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    path: "{{ deploy_remote_secret_dir }}"
+    state: directory
+
+- name: Copy sources
+  become: true
+  copy:
+    src: "{{ playbook_dir }}/../../src"
+    dest: "{{ deploy_remote_dir }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  register: deploy_src_code_result
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ deploy_src_code_result.changed }}"
+
+- name: Make deploy folder
+  become: true
+  file:
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    path: "{{deploy_remote_dir}}/deploy"
+    state: directory
+
+- name: Copy deploy scripts
+  become: true
+  copy:
+    src: "{{ item }}"
+    dest: "{{ deploy_remote_dir }}/{{ item | basename }}._"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  with_fileglob:
+    - "{{ playbook_dir }}/../../*.sh"
+  register: deploy_src_deploy_result
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ not deploy_files_updated and deploy_src_deploy_result.changed }}"
+  
+- name: Copy deploy scripts
+  become: true
+  copy:
+    src: "{{ item }}"
+    dest: "{{ deploy_remote_dir }}/deploy/{{ item | basename }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  with_fileglob:
+    - "{{ playbook_dir }}/../*"
+  register: deploy_src_deploy_impl_result
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ not deploy_files_updated and deploy_src_deploy_impl_result.changed }}"
+
+- name: Copy share files
+  become: true
+  copy:
+    src: "{{ sh_share_deploy_local_share_dir }}/{{ item | basename }}"
+    dest: "{{ sh_share_deploy_remote_share_dir }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  with_fileglob:
+    - "{{ sh_share_deploy_local_share_dir }}/*.{{ sh_share_deploy_share_type }}"
+  register: deploy_share_files_result
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ not deploy_files_updated and deploy_share_files_result.changed }}"
+
+- name: Copy certificate file
+  become: true
+  copy:
+    src: "{{sh_share_deploy_certificate_file}}"
+    dest: "{{deploy_remote_secret_dir}}//{{ sh_share_deploy_certificate_file | basename }}"
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+  register: deploy_certificate_file_result
+
+- name: Copy certificate file
+  set_fact:
+    deploy_certificate_file: "{{ deploy_certificate_file_result.dest }}"
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ not deploy_files_updated or deploy_certificate_file_result.changed }}"
+
+- name: "Setup custom environment"
+  become: true
+  blockinfile:
+    path: "{{ deploy_remote_secret_dir }}/.env"
+    create: true
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    state: present
+    block: |
+      SH_SHARE_SERVICE_DOMAIN={{ sh_share_deploy_domain }}
+      SH_SHARE_SERVICE_CERTIFICATE={{ deploy_certificate_file }}
+      SH_SHARE_SERVICE_DIR={{ sh_share_deploy_remote_share_dir }}
+      SH_SHARE_SERVICE_TELEGRAM_OFF={{ sh_share_deploy_telegram_off }}
+      SH_SHARE_SERVICE_TELEGRAM_ACCEPT_COMMAND={{ sh_share_deploy_telegram_accept_command }}
+      SH_SHARE_SERVICE_TELEGRAM_BOT_TOKEN={{ sh_share_deploy_telegram_bot_token }}
+      SH_SHARE_SERVICE_TELEGRAM_CHANNEL_ID={{ sh_share_deploy_telegram_channel_id }}
+  register: deploy_custom_environment_result
+
+- name: Check consistency
+  set_fact:
+    deploy_files_updated: "{{ not deploy_files_updated or deploy_custom_environment_result.changed }}"
+
+- name: "Create start script"
+  become: true
+  blockinfile:
+    path: "{{ deploy_remote_dir }}/start.sh"
+    create: true
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: u+x
+    state: present
+    block: |
+      #!/bin/bash
+      THIS_DIR=$(cd $(dirname ${BASH_SOURCE}) && pwd)
+      . ${THIS_DIR}/start.sh._ {{ deploy_mode }} {{ deploy_remote_secret_dir }}/.env
+
+- name: "Create stop script"
+  become: true
+  blockinfile:
+    path: "{{ deploy_remote_dir }}/stop.sh"
+    create: true
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: u+x
+    state: present
+    block: |
+      #!/bin/bash
+      THIS_DIR=$(cd $(dirname ${BASH_SOURCE}) && pwd)
+      . ${THIS_DIR}/stop.sh._ {{ deploy_mode }} $@
+
+- name: "Create deploy script"
+  become: true
+  blockinfile:
+    path: "{{ deploy_remote_dir }}/deploy.sh"
+    create: true
+    owner: "{{ service_user }}"
+    group: "{{ service_user }}"
+    mode: u+x
+    state: present
+    block: |
+      #!/bin/bash
+      THIS_DIR=$(cd $(dirname ${BASH_SOURCE}) && pwd)
+      . ${THIS_DIR}/deploy.sh._ {{ deploy_mode }} {{ deploy_remote_secret_dir }}/.env

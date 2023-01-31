@@ -1,0 +1,18 @@
+---
+- name: Install UFW
+  become: true
+  package:
+    name:
+      - ufw
+  when: ansible_distribution in ("Pop!_OS", "Ubuntu", "Debian")  
+
+- name: "Check UFW and protect current communication channel"
+  become: true
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+  when: ansible_distribution in ('Pop!_OS', 'Ubuntu', 'Debian')
+
+
+
+

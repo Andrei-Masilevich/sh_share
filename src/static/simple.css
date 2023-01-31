@@ -1,0 +1,53 @@
+body
+{
+    background-color: gray;
+    color: black;
+}
+
+.title
+{
+    background-color: black;
+    color: white;
+}
+
+.body
+{
+    background-size: cover;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-size: 12pt;
+}
+
+.body table
+{
+    padding: 1em;
+    margin: 1em;
+    width: 100%;
+    border: none;
+}
+
+.body thead tr th:first-child,
+.body tbody tr td:first-child {
+  width: 40%;
+  min-width: 16em;
+  word-break: break-all;
+}
+
+.link
+{
+    color: black;
+    font-weight: bold;
+}
+
+.code
+{
+    padding: 2em;
+    margin: 1em;
+    font-family: monospace, monospace;
+    background-color: black;
+    color: #f0f0f0;
+}
+
+.text
+{
+    background-color: #f0f0f0;
+}

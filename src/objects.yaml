@@ -1,0 +1,11 @@
+default: sh_tools # this type is accessible without fully qualified path
+objects:
+  - sh_tools:
+      type: zip # select a handler class
+      folder: . # search in root folder
+      synonyms: # append the access via sh_tools/encrypted, sh_tools/key, etc.
+        - archive: .tar.gz
+        - encrypted: .tar.gz.~
+        - data: .tar.gz.~
+          # key to decrypt previous encrypted file
+        - key: .key
