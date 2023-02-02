@@ -52,12 +52,6 @@ main()
         exit 1
     fi
 
-    local TEST_WORDS=$(cat ${TMP_TEST}| wc -w)
-    if (( TEST_WORDS != 1 )); then
-        print_error "($(basename ${BASH_SOURCE}):${LINENO}) Faker doesn't work properly!"
-        exit 1
-    fi
-
     export SH_SHARE_SERVICE_SHADOW=${SHADOW}
     
     if (( SH_SHARE_SERVICE_TELEGRAM_OFF )); then

@@ -1,6 +1,6 @@
 - name: Set home folder
   set_fact:
-    deploy_home_dir: "/etc/sh_share"
+    deploy_home_dir: "/usr/sh_share"
 
 - name: Create service user
   become: true
@@ -22,24 +22,29 @@
 
 - name: Set secret dir
   set_fact:
-    deploy_remote_secret_dir: "{{ deploy_home_dir }}/.secret"
+    deploy_remote_secret_dir: "/etc/sh_share/.secret"
 
 - name: Get working folder
   set_fact:
     install_home_dir: "{{ install_home.stat.path if install_home.stat.isdir is defined }}"
+  
+- name: Apply default shared folder argument
+  set_fact:
+    default_share_dir: "/var/sh_share/www.sh_share"
+  when: sh_share_deploy_remote_share_dir is not defined
 
 - name: Apply shared folder argument
   become: true
   file:
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
-    path: "{{ deploy_home_dir }}/share"
+    path: "{{ default_share_dir }}"
     state: directory
   when: sh_share_deploy_remote_share_dir is not defined
 
 - name: Apply shared folder argument
   set_fact:
-    sh_share_deploy_remote_share_dir: "{{ deploy_home_dir }}/share"
+    sh_share_deploy_remote_share_dir: "{{ default_share_dir }}"
   when: sh_share_deploy_remote_share_dir is not defined
 
 - name: Check access for remote shared folder '{{sh_share_deploy_remote_share_dir}}'

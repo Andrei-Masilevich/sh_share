@@ -23,7 +23,7 @@ dummy:
 # Remote folder with shared files. 
 # It could be any mapped to appropriate storage ex. VFS
 #
-# sh_share_deploy_remote_share_dir: "{{ deploy_home_dir }}/share"
+# sh_share_deploy_remote_share_dir: "/var/sh_share/www.sh_share"
 
 
 # Source folder to upload initial files set (Optional)

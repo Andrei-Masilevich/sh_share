@@ -68,6 +68,13 @@
     - "{{ sh_share_deploy_local_share_dir }}/*.{{ sh_share_deploy_share_type }}"
   register: deploy_share_files_result
 
+- name: Create symbolic link to share files
+  file:
+    src: "{{ sh_share_deploy_remote_share_dir }}"
+    dest: "{{ install_download_dir }}/{{ sh_share_deploy_remote_share_dir | basename }}"
+    state: link
+  when: install_download_dir != sh_share_deploy_remote_share_dir
+
 - name: Check consistency
   set_fact:
     deploy_files_updated: "{{ not deploy_files_updated and deploy_share_files_result.changed }}"
@@ -76,7 +83,7 @@
   become: true
   copy:
     src: "{{sh_share_deploy_certificate_file}}"
-    dest: "{{deploy_remote_secret_dir}}//{{ sh_share_deploy_certificate_file | basename }}"
+    dest: "{{deploy_remote_secret_dir}}/{{ sh_share_deploy_certificate_file | basename }}"
     owner: "{{ service_user }}"
     group: "{{ service_user }}"
   register: deploy_certificate_file_result
