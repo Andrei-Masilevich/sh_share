@@ -80,13 +80,13 @@ There two way to deploy project with Nginx (for Squid it is pretty same):
 ## Remotely with Ansible:
 ---
 ```bash
-ansible-ansible-playbook --ask-become-pass ./deploy/ansible/deploy_with_nginx.yaml
+ansible-playbook --ask-become-pass ./deploy/ansible/deploy_with_nginx.yaml
 ```
 
 or by connecting to root session (default for some cloud providers):
 
 ```bash
-ansible-ansible-playbook ./deploy/ansible/deploy_with_nginx.yaml
+ansible-playbook ./deploy/ansible/deploy_with_nginx.yaml
 ```
 
 > Variables are required inside _./deploy/ansible/group_vars_:
